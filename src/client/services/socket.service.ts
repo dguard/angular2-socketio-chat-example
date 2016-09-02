@@ -2,8 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import * as io from "socket.io-client";
 
-import { ISocketItem } from "./socket-item.interface";
-import { IMessage } from "../../../models/message.model";
+import { IMessage, ISocketItem } from "../../models";
 
 @Injectable()
 export class SocketService {
@@ -11,22 +10,8 @@ export class SocketService {
     private host: string = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port;
     socket: SocketIOClient.Socket;
 
-    /**
-     * Constructor.
-     *
-     * @class SocketService
-     * @constructor
-     */
     constructor() {}
 
-     /**
-      * Get items observable
-      *
-      * @class SocketService
-      * @method get
-      * @param name string
-      * @return Observable<any>
-      */
     get(name: string): Observable<any> {
         this.name = name;
         let socketUrl = this.host + "/" + this.name;
@@ -45,37 +30,14 @@ export class SocketService {
         });
     }
 
-    /**
-     * Create signal
-     *
-     * @class SocketService
-     * @method create
-     * @param name string
-     * @return void
-     */
     create(name: string) {
         this.socket.emit("create", name);
     }
 
-    /**
-     * Remove signal
-     *
-     * @class SocketService
-     * @method remove
-     * @param name string
-     * @return void
-     */
     remove(name: string) {
         this.socket.emit("remove", name);
     }
 
-    /**
-     * Handle connection opening
-     *
-     * @class SocketService
-     * @method connect
-     * @return void
-     */
     private connect() {
         console.log(`Connected to "${this.name}"`);
 
@@ -83,13 +45,6 @@ export class SocketService {
         this.socket.emit("list");
     }
 
-    /**
-     * Handle connection closing
-     *
-     * @class SocketService
-     * @method disconnect
-     * @return void
-     */
     private disconnect() {
         console.log(`Disconnected from "${this.name}"`);
     }

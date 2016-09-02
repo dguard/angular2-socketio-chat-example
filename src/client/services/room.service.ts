@@ -2,24 +2,16 @@ import { Injectable } from "@angular/core";
 import { ReplaySubject } from "rxjs";
 import { List } from "immutable";
 
-import { SocketService, ISocketItem } from "../socket";
-import { UserService } from "../user";
+import { SocketService } from "./socket.service";
+import { UserService } from "./user.service";
 
-import { IRoom } from "../../../models/room.model";
+import { ISocketItem, IRoom } from "../../models";
 
 @Injectable()
 export class RoomService {
     rooms: ReplaySubject<any> = new ReplaySubject(1);
     private list: List<any> = List();
 
-    /**
-     * Constructor.
-     *
-     * @class RoomService
-     * @constructor
-     * @param socketService SocketService
-     * @param userService UserService
-     */
     constructor(
         private socketService: SocketService,
         private userService: UserService
@@ -48,14 +40,6 @@ export class RoomService {
             );
     }
 
-    /**
-     * Join room
-     *
-     * @class RoomService
-     * @method join
-     * @param name string
-     * @return void
-     */
     join(name: string): void {
         for (let roomIndex in this.userService.rooms) {
             let room = this.userService.rooms[roomIndex];
@@ -70,14 +54,6 @@ export class RoomService {
         }
     }
 
-    /**
-     * Leave room
-     *
-     * @class RoomService
-     * @method leave
-     * @param name string
-     * @return void
-     */
     leave(name: string) {
         // First remove the room from user joined rooms
         for (var i = 0; i < this.userService.rooms.length; i++) {
@@ -88,26 +64,10 @@ export class RoomService {
         }
     }
 
-    /**
-     * Create room
-     *
-     * @class RoomService
-     * @method create
-     * @param name string
-     * @return void
-     */
     create(name: string) {
         this.socketService.create(name);
     }
 
-    /**
-     * Remove room
-     *
-     * @class RoomService
-     * @method remove
-     * @param name string
-     * @return void
-     */
     remove(name: string) {
         // First remove the room from user joined rooms
         for (var i = 0; i < this.userService.rooms.length; i++) {
@@ -121,14 +81,6 @@ export class RoomService {
         this.socketService.remove(name);
     }
 
-    /**
-     * Find matching room
-     *
-     * @class RoomService
-     * @method findIndex
-     * @param name string
-     * @return number
-     */
     private findIndex(name: string): number {
         return this.list.findIndex((room: IRoom) => {
             return room.name === name;

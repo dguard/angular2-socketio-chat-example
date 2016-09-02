@@ -1,21 +1,14 @@
 {
   "version": "1.8.10",
   "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "commonjs",
-    "removeComments": true,
-    "sourceMap": true,
-    "target": "es5"
+    "sourceMap": true
   },
-  "files": [
-    "src/client.ts",
-    "src/server.ts",
-    "typings/index.d.ts",
-    "typings/custom/custom.d.ts"
-  ],
   "exclude": [
-    "node_modules/**/*.ts"
+    "node_modules"
   ],
   "compileOnSave": false,
   "buildOnSave": false

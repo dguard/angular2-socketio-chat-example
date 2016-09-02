@@ -1,15 +1,22 @@
 'use strict';
 
-const del               = require('del');
 const connect           = require('gulp-connect');
-const nodemon           = require('gulp-nodemon');
+const del               = require('del');
+const dotenv            = require('dotenv');
 const gulp              = require('gulp');
 const gulpUtil          = require('gulp-util');
 const historyApi        = require('connect-history-api-fallback');
-const livereload        = require('gulp-livereload');
+const karma             = require('karma');
+const nodemon           = require('gulp-nodemon');
 const sourcemaps        = require('gulp-sourcemaps');
 const tslint            = require('gulp-tslint');
 const webpack           = require('webpack');
+
+
+//=========================================================
+//  ENVIRONMENT
+//---------------------------------------------------------
+dotenv.config();
 
 
 //=========================================================
@@ -17,25 +24,23 @@ const webpack           = require('webpack');
 //---------------------------------------------------------
 const paths = {
     src: {
-        ts: ['src/*.ts', 'src/**/*.ts'],
-        client: ['src/client.ts', 'src/client/**', 'src/styles'],
-        server: ['src/server.ts', 'src/server/**'],
-        assets: {
-            images: 'src/images/*.{png,jpg,svg}',
-            styles: 'src/styles/'
-        }
+        client: ['src/client.ts', 'src/client/**/*.ts'],
+        server: ['src/server.ts', 'src/server/**/*.ts'],
+        common: ['src/models/**/*.ts', 'src/data/*.json', 'src/styles/**/*.scss']
     },
 
     target: 'target'
 };
 
 
-let server = null;
-
 //=========================================================
 //  CONFIG
 //---------------------------------------------------------
 const config = {
+    karma: {
+        configFile: __dirname + '/karma.conf.js'
+    },
+
     tslint: {
         report: {
             options: {emitError: true},
@@ -44,9 +49,9 @@ const config = {
     },
 
     webpack: {
-        client: './webpack.client',
-        dev: './webpack.dev',
-        server: './webpack.server'
+        prod: './config/webpack.prod',
+        dev: './config/webpack.dev',
+        server: './config/webpack.server'
     }
 };
 
@@ -58,7 +63,7 @@ gulp.task('clean', () => del(paths.target));
 
 
 gulp.task('lint:client', () => {
-  return gulp.src(paths.src.ts.client)
+  return gulp.src(paths.src.client)
     .pipe(tslint())
     .pipe(tslint.report(
       config.tslint.report.type,
@@ -67,7 +72,7 @@ gulp.task('lint:client', () => {
 });
 
 gulp.task('lint:server', () => {
-  return gulp.src(paths.src.ts.server)
+  return gulp.src(paths.src.server)
     .pipe(tslint())
     .pipe(tslint.report(
       config.tslint.report.type,
@@ -80,57 +85,56 @@ gulp.task('lint', gulp.series(
     'lint:server'
 ))
 
-
-// Assets
-gulp.task('assets:images', () => {
-    return gulp.src([paths.src.assets.images])
-        .pipe(gulp.dest(paths.target + '/assets/images'));
-});
-
-gulp.task('assets', gulp.series(
-    'assets:images'
-))
-
-
 // Webpack
-gulp.task('webpack:client', done => {
-    let conf = require(config.webpack.client);
+gulp.task('webpack:client-prod', done => {
+    let conf = require(config.webpack.prod);
     webpack(conf).run((error, stats) => {
-        if (error) throw new gulpUtil.PluginError('webpack:client', error);
+        if (error) throw new gulpUtil.PluginError('webpack:client-prod', error);
         gulpUtil.log(stats.toString(conf.stats));
         done();
     });
 });
 
-gulp.task('webpack:dev', done => {
+gulp.task('webpack:client-dev', done => {
     let conf = require(config.webpack.dev);
     webpack(conf).watch(100, (error, stats) => {
-        if (error) throw new gulpUtil.PluginError('webpack:dev', error);
+        if (error) throw new gulpUtil.PluginError('webpack:client-dev', error);
         gulpUtil.log(stats.toString(conf.stats));
     });
     done();
 });
 
-gulp.task('webpack:server', done => {
+gulp.task('webpack:server-prod', done => {
     let conf = require(config.webpack.server);
     webpack(conf).run((error, stats) => {
-        if (error) throw new gulpUtil.PluginError('webpack:server', error);
+        if (error) throw new gulpUtil.PluginError('webpack:server-prod', error);
         gulpUtil.log(stats.toString(conf.stats));
         done();
     });
 });
 
+gulp.task('webpack:server-dev', done => {
+    let conf = require(config.webpack.server);
+    webpack(conf).watch(100, (error, stats) => {
+        if (error) throw new gulpUtil.PluginError('webpack:server-dev', error);
+        gulpUtil.log(stats.toString(conf.stats));
+        done();
+    });
+});
+
+gulp.task('webpack:dev', gulp.series(
+    'webpack:server-dev',
+    'webpack:client-dev'
+));
+
 gulp.task('webpack', gulp.series(
-    'webpack:server',
-    'webpack:client'
+    'webpack:server-prod',
+    'webpack:client-prod'
 ));
 
 
 // Watch
 gulp.task('watch', done => {
-    gulp.watch([paths.src.server], gulp.task('webpack:server'));
-    gulp.watch([paths.src.assets.images], gulp.task('assets:images'));
-
     nodemon({
         script: paths.target + '/assets/js/server.js',
         watch: paths.target + '/assets/js/server.js',
@@ -139,6 +143,7 @@ gulp.task('watch', done => {
         ignore: [
            paths.target + '/assets/js/client.js',
            paths.target + '/assets/js/vendor.js',
+           paths.target + '/assets/js/polyfills.js',
            paths.assets
         ]
     })
@@ -153,12 +158,34 @@ gulp.task('watch', done => {
 
 
 //===========================
+//  TEST
+//---------------------------
+function karmaServer(options, done) {
+   let server = new karma.Server(options, error => {
+      if (error) process.exit(error);
+      done();
+  });
+  server.start();
+}
+
+
+gulp.task('test', done => {
+    config.karma.singleRun = true;
+    karmaServer(config.karma, done);
+});
+
+
+gulp.task('test.watch', done => {
+    karmaServer(config.karma, done);
+});
+
+
+//===========================
 //  DEVELOPMENT
 //---------------------------
 gulp.task('compile', gulp.series(
     'clean',
-    'webpack',
-    'assets'
+    'webpack'
 ));
 
 
@@ -167,6 +194,7 @@ gulp.task('compile', gulp.series(
 //---------------------------
 gulp.task('build', gulp.series(
     'lint',
+    'test',
     'compile'
 ));
 
@@ -176,8 +204,6 @@ gulp.task('build', gulp.series(
 //---------------------------
 gulp.task('default', gulp.series(
     'clean',
-    'assets',
-    'webpack:server',
     'webpack:dev',
     'watch'
 ));

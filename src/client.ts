@@ -1,23 +1,18 @@
-import { enableProdMode, provide } from "@angular/core";
-import { bootstrap } from "@angular/platform-browser-dynamic";
-import { ROUTER_PROVIDERS } from "@angular/router-deprecated";
+import { enableProdMode } from "@angular/core";
+import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 
-// root component
-import { AppComponent } from "./client/app";
+// App module
+import { AppModule } from "./client/app";
 
-// service providers
-import { SERVICE_PROVIDERS } from "./client/services/providers";
+// Global styles
+import "./styles/main.scss";
 
-// global styles
-import "./styles/styles.scss";
+// Declare process variable (so that type checker doesn't nag about it)
+declare var process;
 
-
+// Production mode
 if (process.env.NODE_ENV === "production") {
     enableProdMode();
 }
 
-
-bootstrap(AppComponent, [
-    ROUTER_PROVIDERS,
-    SERVICE_PROVIDERS
-]).catch((error: Error) => console.error(error));
+platformBrowserDynamic().bootstrapModule(AppModule);

@@ -1,22 +1,15 @@
 import { ReplaySubject } from "rxjs";
 import { List } from "immutable";
 
-import { SocketService, ISocketItem } from "../socket";
+import { SocketService } from "./socket.service";
 
-import { IMessage } from "../../../models/message.model";
+import { IMessage, ISocketItem } from "../../models";
 
 export class MessageService {
     messages: ReplaySubject<any> = new ReplaySubject(1);
     private list: List<any> = List();
     private socketService: SocketService;
 
-    /**
-     * Constructor.
-     *
-     * @class MessageService
-     * @constructor
-     * @param room string
-     */
     constructor(private room: string) {
         this.socketService = new SocketService();
         this.socketService
@@ -31,15 +24,6 @@ export class MessageService {
             );
     }
 
-    /**
-     * Emit message using socket service
-     *
-     * @class MessageService
-     * @method create
-     * @param from string
-     * @param message string
-     * @return void
-     */
     create(from: string, message: string): void {
         this.socketService.socket.emit("create", {
             room: this.room,

@@ -2,45 +2,25 @@ import * as express from "express";
 import * as http from "http";
 import * as serveStatic from "serve-static";
 import * as path from "path";
-import * as dotenv from "dotenv";
-import * as socketIo from "socket.io";
 import * as mongoose from "mongoose";
+import * as websocket from "websocket";
 
-import { RoomSocket } from "./room-socket";
+import { RoomSocket } from "./socket/room";
 
 declare var process, __dirname;
 
-/**
- * The server.
- *
- * @class Server
- */
 class Server {
     public app: any;
     private server: any;
-    private io: any;
+    private ws: any;
     private mongo: any;
     private root: string;
     private port: number;
 
-    /**
-    * Bootstrap the application.
-    *
-    * @class Server
-    * @method bootstrap
-    * @static
-    * @return {ng.auto.IInjectorService} Returns the newly created injector for this app.
-    */
     public static bootstrap(): Server {
         return new Server();
     }
 
-    /**
-    * Constructor.
-    *
-    * @class Server
-    * @constructor
-    */
     constructor() {
         // Create expressjs application
         this.app = express();
@@ -64,17 +44,7 @@ class Server {
         this.listen();
     }
 
-    /**
-     * Configuration
-     *
-     * @class Server
-     * @method config
-     * @return void
-     */
     private config(): void {
-        // Read .env file (local development)
-        dotenv.config();
-
         // By default the port should be 5000
         this.port = process.env.PORT || 5000;
 
@@ -83,13 +53,6 @@ class Server {
 
     }
 
-    /**
-     * Configure routes
-     *
-     * @class Server
-     * @method routes
-     * @return void
-     */
     private routes(): void {
         let router: express.Router;
         router = express.Router();
@@ -106,13 +69,6 @@ class Server {
         this.app.use('*', router);
     }
 
-    /**
-     * Configure databases
-     *
-     * @class Server
-     * @method databases
-     * @return void
-     */
     private databases(): void {
         // MongoDB URL
         let mongoDBUrl = process.env.MONGODB_URI || 'mongodb://localhost/chat';
@@ -121,26 +77,15 @@ class Server {
         this.mongo = mongoose.connect(mongoDBUrl);
     }
 
-    /**
-     * Configure sockets
-     *
-     * @class Server
-     * @method sockets
-     * @return void
-     */
     private sockets(): void {
         // Get socket.io handle
-        this.io = socketIo(this.server);
-        let roomSocket = new RoomSocket(this.io);
+        this.ws = new websocket.server({
+            httpServer: this.server,
+            autoAcceptConnections: false
+        });
+        let roomSocket = new RoomSocket(this.ws);
     }
     
-    /**
-     * Start HTTP server listening
-     *
-     * @class Server
-     * @method listen
-     * @return void
-     */
     private listen(): void {
         //listen on provided ports
         this.server.listen(this.port);

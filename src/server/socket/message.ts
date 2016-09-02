@@ -1,4 +1,4 @@
-import { IMessage, Message } from "../models/message.model";
+import { IMessage, Message } from "../../models/message.model";
 
 export class MessageSocket {
     nsp: any;

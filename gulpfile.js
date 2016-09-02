@@ -6,7 +6,6 @@ const nodemon           = require('gulp-nodemon');
 const gulp              = require('gulp');
 const gulpUtil          = require('gulp-util');
 const historyApi        = require('connect-history-api-fallback');
-const livereload        = require('gulp-livereload');
 const sourcemaps        = require('gulp-sourcemaps');
 const tslint            = require('gulp-tslint');
 const webpack           = require('webpack');
@@ -78,17 +77,6 @@ gulp.task('lint:server', () => {
 gulp.task('lint', gulp.series(
     'lint:client',
     'lint:server'
-))
-
-
-// Assets
-gulp.task('assets:images', () => {
-    return gulp.src([paths.src.assets.images])
-        .pipe(gulp.dest(paths.target + '/assets/images'));
-});
-
-gulp.task('assets', gulp.series(
-    'assets:images'
 ))
 
 

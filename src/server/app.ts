@@ -2,11 +2,10 @@ import * as express from "express";
 import * as http from "http";
 import * as serveStatic from "serve-static";
 import * as path from "path";
-import * as dotenv from "dotenv";
 import * as socketIo from "socket.io";
 import * as mongoose from "mongoose";
 
-import { RoomSocket } from "./room-socket";
+import { RoomSocket } from "./socket";
 
 declare var process, __dirname;
 
@@ -72,9 +71,6 @@ class Server {
      * @return void
      */
     private config(): void {
-        // Read .env file (local development)
-        dotenv.config();
-
         // By default the port should be 5000
         this.port = process.env.PORT || 5000;
 

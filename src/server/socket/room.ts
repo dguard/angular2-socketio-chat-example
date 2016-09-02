@@ -1,7 +1,6 @@
-import { IRoom, Room } from "../models/room.model";
-import { IMessage, Message } from "../models/message.model";
+import { IMessage, Message, IRoom, Room } from "../../models";
 
-import { MessageSocket } from "./message-socket";
+import { MessageSocket } from "./message";
 
 export class RoomSocket {
     nsp: any;
